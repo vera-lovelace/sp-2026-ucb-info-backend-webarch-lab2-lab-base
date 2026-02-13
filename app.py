@@ -160,9 +160,22 @@ def _generate_advice_from_openai(major):
 #
 # 5. Return 200 with: {"id": ..., "major": "...", "advice": "..."}
 
+
+
 @app.post('/students/<int:student_id>/advice')
 def generate_advice(student_id):
-    pass  # TODO: Replace with your implementation
+    global next_id
+
+    if student_id not in students:
+        return {"error": "Student not found"}, 404
+    if students[student_id]["major"] not in students[student_id]["majors"]:
+        return {"error": "Student major is required to generate advice"}, 400
+
+    else:
+        advice=_generate_advice_from_openai(student_id)
+        students[student_id]["advice"] = advice
+        return jsonify(students[student_id]), 200
+
 
 
 # --- Endpoint B: GET /students/<id>/advice ---
@@ -175,9 +188,19 @@ def generate_advice(student_id):
 #
 # 3. Return 200 with: {"id": ..., "advice": "..."}
 
+
+
 @app.get('/students/<int:student_id>/advice')
 def get_advice(student_id):
-    pass  # TODO: Replace with your implementation
+    global next_id
+
+    if student_id not in students:
+        return {"error": "Student not found"}, 404
+
+    if students[student_id]["advice"]:
+        return jsonify(students[student_id]), 200
+    else:
+        return {"error": "Advice not found for this student"}, 404
 
 
 # =============================================================================
