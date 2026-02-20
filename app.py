@@ -168,13 +168,17 @@ def generate_advice(student_id):
 
     if student_id not in students:
         return {"error": "Student not found"}, 404
-    if students[student_id]["major"] not in students[student_id]["majors"]:
+    if not students[student_id]["major"]:
         return {"error": "Student major is required to generate advice"}, 400
 
-    else:
-        advice=_generate_advice_from_openai(student_id)
+    try:
+        advice=_generate_advice_from_openai(students[student_id]["major"])
         students[student_id]["advice"] = advice
-        return jsonify(students[student_id]), 200
+        return students[student_id], 200
+
+    except Exception as e:
+        app.logger.error ("Error generating advice")
+        return {"error": "Upstream AI service failed"}, 502
 
 
 
@@ -197,8 +201,8 @@ def get_advice(student_id):
     if student_id not in students:
         return {"error": "Student not found"}, 404
 
-    if students[student_id]["advice"]:
-        return jsonify(students[student_id]), 200
+    if students[student_id].get("advice"):
+        return students[student_id], 200
     else:
         return {"error": "Advice not found for this student"}, 404
 
